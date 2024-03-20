@@ -51,7 +51,7 @@ pipeline {
             steps {
                 rtServer (
                     id: "jfrog-server",
-                    url: "http://52.205.192.199:8082/artifactory",
+                    url: "http://3.85.196.141:8082/artifactory",
                     credentialsId: "jfrog"
                 )
 
