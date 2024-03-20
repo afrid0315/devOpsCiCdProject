@@ -7,7 +7,7 @@ pipeline {
         SCANNER_HOME = tool 'sonar-scanner'
         APP_NAME = "java-registration-app"
         RELEASE = "1.0.0"
-        DOCKER_USER = "afrid0315"
+        DOCKER_USER = "ashfaque9x"
         DOCKER_PASS = 'dockerhub'
         IMAGE_NAME = "${DOCKER_USER}" + "/" + "${APP_NAME}"
         IMAGE_TAG = "${RELEASE}-${BUILD_NUMBER}"
@@ -21,7 +21,7 @@ pipeline {
          }
          stage('Checkout from Git') {
             steps {
-                git branch: 'main', url: 'https://github.com/afrid0315/devOpsCiCdProject.git'
+                git branch: 'main', url: 'https://ashfaque-9x@bitbucket.org/vtechbox/registration-app.git'
             }
          }
          stage ('Build Package')  {
@@ -33,7 +33,7 @@ pipeline {
          }
          stage ('SonarQube Analysis') {
             steps {
-              withSonarQubeEnv('sonar-server') {
+              withSonarQubeEnv('SonarQube-Server') {
                 dir('webapp'){
                 sh 'mvn -U clean install sonar:sonar'
                 }
@@ -43,7 +43,7 @@ pipeline {
          stage("Quality Gate") {
             steps {
                 script {
-                    waitForQualityGate abortPipeline: false, credentialsId: 'sonar-token'
+                    waitForQualityGate abortPipeline: false, credentialsId: 'SonarQube-Token'
                 }
             }
          }
@@ -51,7 +51,7 @@ pipeline {
             steps {
                 rtServer (
                     id: "jfrog-server",
-                    url: "http://52.205.192.199:8082/artifactory",
+                    url: "http://13.201.137.77:8082/artifactory",
                     credentialsId: "jfrog"
                 )
 
@@ -88,7 +88,6 @@ pipeline {
              )
             }
          }
-	
          stage('TRIVY FS SCAN') {
             steps {
                 sh "trivy fs . > trivyfs.txt"
@@ -122,5 +121,30 @@ pipeline {
                  }
              }
          }
+         stage('Deploy to Kubernets'){
+             steps{
+                 script{
+                      dir('Kubernetes') {
+                         kubeconfig(credentialsId: 'kubernetes', serverUrl: '') {
+                         sh 'kubectl apply -f deployment.yml'
+                         sh 'kubectl apply -f service.yml'
+                         sh 'kubectl rollout restart deployment.apps/registerapp-deployment'
+                         }   
+                      }
+                 }
+             }
+         }
+        
     }
-}
+    post {
+      always {
+        emailext attachLog: true,
+            subject: "'${currentBuild.result}'",
+            body: "Project: ${env.JOB_NAME}<br/>" +
+                "Build Number: ${env.BUILD_NUMBER}<br/>" +
+                "URL: ${env.BUILD_URL}<br/>",
+            to: 'ashfaque.s510@gmail.com',                              
+            attachmentsPattern: 'trivyfs.txt,trivyimage.txt'
+      }
+    }
+}     
