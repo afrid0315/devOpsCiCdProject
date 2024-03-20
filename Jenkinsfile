@@ -21,7 +21,7 @@ pipeline {
          }
          stage('Checkout from Git') {
             steps {
-                git branch: 'main', url: 'github.com/afrid0315/devOpsCiCdProject.git'
+                git branch: 'main', url: 'https://github.com/afrid0315/devOpsCiCdProject.git'
             }
          }
          stage ('Build Package')  {
