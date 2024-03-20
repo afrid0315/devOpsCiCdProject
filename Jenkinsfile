@@ -7,7 +7,7 @@ pipeline {
         SCANNER_HOME = tool 'sonar-scanner'
         APP_NAME = "java-registration-app"
         RELEASE = "1.0.0"
-        DOCKER_USER = "ashfaque9x"
+        DOCKER_USER = "afrid0315"
         DOCKER_PASS = 'dockerhub'
         IMAGE_NAME = "${DOCKER_USER}" + "/" + "${APP_NAME}"
         IMAGE_TAG = "${RELEASE}-${BUILD_NUMBER}"
@@ -21,7 +21,7 @@ pipeline {
          }
          stage('Checkout from Git') {
             steps {
-                git branch: 'main', url: 'https://ashfaque-9x@bitbucket.org/vtechbox/registration-app.git'
+                git branch: 'main', url: 'github.com/afrid0315/devOpsCiCdProject.git'
             }
          }
          stage ('Build Package')  {
@@ -33,7 +33,7 @@ pipeline {
          }
          stage ('SonarQube Analysis') {
             steps {
-              withSonarQubeEnv('SonarQube-Server') {
+              withSonarQubeEnv('sonar-server') {
                 dir('webapp'){
                 sh 'mvn -U clean install sonar:sonar'
                 }
@@ -43,7 +43,7 @@ pipeline {
          stage("Quality Gate") {
             steps {
                 script {
-                    waitForQualityGate abortPipeline: false, credentialsId: 'SonarQube-Token'
+                    waitForQualityGate abortPipeline: false, credentialsId: 'sonar-token'
                 }
             }
          }
@@ -51,7 +51,7 @@ pipeline {
             steps {
                 rtServer (
                     id: "jfrog-server",
-                    url: "http://13.201.137.77:8082/artifactory",
+                    url: "http://52.205.192.199:8082/artifactory",
                     credentialsId: "jfrog"
                 )
 
